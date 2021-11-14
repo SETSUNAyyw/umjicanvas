@@ -1,4 +1,4 @@
-# sh ./fetch_data.sh
+# sh ./fetch_data.sh $1
 
 # my_activity_230=`python ./canvas.py VE230 -m`
 # my_activity_320=`python ./canvas.py VE320 -m`
@@ -8,6 +8,7 @@
 # my_activity=$((my_activity_230 + my_activity_320 + my_activity_370 + my_activity_471 + my_activity_496))
 
 # python ./canvas.py VE230 -s $my_activity
+
 
 python ./canvas.py VE230 -r
 python ./canvas.py VE320 -r
