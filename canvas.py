@@ -121,7 +121,6 @@ def main():
 		dfN = df0[["student_id", "name"]]
 		dfN["day_activity"] = delta
 		dfNsorted = dfN.groupby(["student_id", "name"]).agg(sum).sort_values("day_activity", ascending = False).head(15)
-		dfNsorted.to_csv(rank_csv)
 		print("-"*50 + "\nToday's 15 best contributors of " + args.course + "!\n" + "-"*50 + "\n")
 		print(dfNsorted)
 		sys.exit(0)
