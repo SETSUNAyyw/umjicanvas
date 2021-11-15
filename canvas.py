@@ -6,6 +6,7 @@ import datetime
 import os
 import sys
 import warnings
+import contribution
 from oauthlib.oauth2.rfc6749 import tokens
 from oauthlib.oauth2 import Server
 
@@ -101,8 +102,15 @@ def main():
 	activity_csv = "./data/my_activity.csv"
 
 	if (args.summary):
-		with open(activity_csv, "a") as f:
-			f.write("{},{}\n".format(datetime.date.today().isoformat(), args.summary))
+		# with open(activity_csv, "a") as f:
+		# 	f.write("{},{}\n".format(datetime.date.today().isoformat(), args.summary))
+		df = pd.read_csv(activity_csv)
+		activity = df["activity"].values
+		delta = [0]
+		for i in range(len(df) - 1):
+			delta.append(activity[i + 1] - activity[i])
+		contribution.contributionPlot(datetime.date.today(), delta)
+		print(delta)
 		sys.exit(0)
 
 	if (args.rank):
