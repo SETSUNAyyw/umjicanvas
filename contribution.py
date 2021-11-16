@@ -4,9 +4,13 @@ import os
 import datetime
 from matplotlib import pyplot as plt
 
-def contributionPlot(date, activity_observed, by = "month"):
-	data_path = "/tmp/.umjicanvas/"
-	png_path = data_path + "temp.png"
+def contributionPlot(date, activity_observed, by = "month", save = "./"):
+	if (save == "temp"):
+		data_path = "/tmp/.umjicanvas/"
+		png_path = data_path + "temp.png"
+	else:
+		data_path = save + "img/"
+		png_path = data_path + datetime.datetime.now().strftime("%Y-%m-%d") + ".png"
 	activity = activity_observed
 	if not (os.path.exists(data_path)):
 		os.makedirs(data_path)
@@ -37,7 +41,7 @@ def contributionPlot(date, activity_observed, by = "month"):
 		y = np.append(y, y0)
 	# print(x)
 	# print(y)
-	c = activity#np.random.randint(100, size = 35)#
+	c = activity#np.random.randint(100, size = 35)
 	plt.figure(figsize = (fig_len, 4))
 	plt.style.use('dark_background')
 	plt.scatter(x = x, y = y, c = c, s = 700, marker = ",", cmap = "bone")
@@ -45,5 +49,8 @@ def contributionPlot(date, activity_observed, by = "month"):
 	# plt.colorbar()
 	plt.axis("off")
 	plt.savefig(png_path)
-	os.system("gthumb " + png_path)
-	os.system("rm " + png_path)
+	if (save == "temp"):
+		os.system("gthumb " + png_path)
+		os.system("rm " + png_path)
+	else:
+		print("Saved contribution plot at " + png_path)

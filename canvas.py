@@ -104,10 +104,11 @@ def main():
 	# Parse arguments
 	parser = argparse.ArgumentParser(prog = "canvas")
 	parser.add_argument("course", help = "Input course name that you want to operate on.", type = str)
-	parser.add_argument("-m", "--mine", help = "Check my activity.", type = int)
-	parser.add_argument("-s", "--summary", help = "Summarize today's activity.", type = int)
-	parser.add_argument("-r", "--rank", help = "Rank user daily activity in the course.", action = "store_true")
-	parser.add_argument("-f", "--favorite", help = "Check curret term courses.", action = "store_true")
+	parser.add_argument("-f", "--favorite", help = "Return a list of current courses.", action = "store_true")
+	parser.add_argument("-m", "--mine", help = "Query my activity, requires id.", type = int)
+	parser.add_argument("-s", "--summary", help = "Save today's overall activity, requires the amount of activity.", type = int)
+	parser.add_argument("-r", "--rank", help = "Rank users daily activity in the course.", action = "store_true")
+	parser.add_argument("-p", "--plot", help = "Plot my contribution.", nargs = "?", const = "./")
 	parser.add_argument("-t", "--test", help = "Test.", type = str)
 	args = parser.parse_args()
 	args.course = args.course.strip("'")
@@ -140,12 +141,15 @@ def main():
 					f.write(my_activities[i])
 		with open(activity_csv, "a") as f:
 			f.write("{},{}\n".format(datetime.date.today().isoformat(), args.summary))
+			sys.exit(0)
+
+	if (args.plot):
 		df = pd.read_csv(activity_csv)
 		activity = df["activity"].values
 		delta = [0]
 		for i in range(len(df) - 1):
 			delta.append(activity[i + 1] - activity[i])
-		contribution.contributionPlot(datetime.date.today(), delta, by = "month")
+		contribution.contributionPlot(datetime.date.today(), delta, by = "month", save = args.plot)
 		# print(delta)
 		sys.exit(0)
 

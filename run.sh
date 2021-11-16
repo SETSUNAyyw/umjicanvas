@@ -1,17 +1,46 @@
-sh ./fetch_data.sh $1
+if [ ! -f "./token.txt" ]; then
+	echo "Missing access token. Please include it in ./token.txt"
+	exit
+fi
 
-# my_activity_230=`python ./canvas.py VE230 -m`
-# my_activity_320=`python ./canvas.py VE320 -m`
-# my_activity_370=`python ./canvas.py VE370 -m`
-# my_activity_471=`python ./canvas.py VE471 -m`
-# my_activity_496=`python ./canvas.py VE496 -m`
-# my_activity=$((my_activity_230 + my_activity_320 + my_activity_370 + my_activity_471 + my_activity_496))
+token=`cat ./token.txt`
+if [ -z $token ]; then
+	echo "Missing access token. Please include it in ./token.txt"
+	exit
+fi
 
-# python ./canvas.py VE230 -s $my_activity
+GET "https://umjicanvas.com/api/v1/users/self/favorites/courses?access_token=$token" > /tmp/temp.txt
+courses=($(python ./canvas.py xxx -f | tr -d '[],'))
+rm /tmp/temp.txt
+# echo ${couses[1]}
+len_course=${#courses[@]}
 
+for (( i = 1; i < ${len_course}; i += 2 ));
+do
+	for j in {1..5}
+	do
+		course_id=${courses[$i]}
+		course_name=${courses[$(($i + 1))]}
+		var=`GET "https://umjicanvas.com/api/v1/courses/$course_id/users?access_token=$token&include[]=email&include[]=enrollments&per_page=50&page=$j"`
+		len=`echo -n $var | wc -m`
+		if [ $len -gt 100 ]; then
+			echo $var >> /tmp/$course_name.txt
+		else
+			break
+		fi
+	done
+	python ./canvas.py $course_name
+	echo "Fetching data from $course_name"
+	rm /tmp/$course_name.txt
+done
 
-# python ./canvas.py VE230 -r
-# python ./canvas.py VE320 -r
-# python ./canvas.py VE370 -r
-# python ./canvas.py VE471 -r
-# python ./canvas.py VE496 -r
+my_activity=0
+for (( i = 1; i < ${len_course}; i += 2 ));
+do
+	course_name=${courses[$(($i + 1))]}
+	delta=`python ./canvas.py $course_name -m ${courses[0]}`
+	my_activity=$((my_activity + $delta))
+	python ./canvas.py $course_name -r
+done
+python ./canvas.py xxx -s $my_activity
+python ./canvas.py xxx -p
