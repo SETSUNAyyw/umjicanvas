@@ -109,6 +109,7 @@ def main():
 	parser.add_argument("-s", "--summary", help = "Save today's overall activity, requires the amount of activity.", type = int)
 	parser.add_argument("-r", "--rank", help = "Rank users daily activity in the course.", action = "store_true")
 	parser.add_argument("-p", "--plot", help = "Plot my contribution.", nargs = "?", const = "./")
+	parser.add_argument("-q", "--query", help = "Query others' contribution, requires id.", type = int)
 	parser.add_argument("-t", "--test", help = "Test.", type = str)
 	args = parser.parse_args()
 	args.course = args.course.strip("'")
@@ -152,6 +153,33 @@ def main():
 		contribution.contributionPlot(datetime.date.today(), delta, by = "month", save = args.plot)
 		# print(delta)
 		sys.exit(0)
+
+	if (args.query):
+		query_data = []
+		for i in range(32):
+			query_csv = data_path + (datetime.date.today() - datetime.timedelta(i)).isoformat() + "/" + args.course + ".csv"
+			if not (os.path.exists(query_csv)):
+				if (i == 0):
+					print("There is no activity data yet. Try run.sh first.")
+					sys.exit(0)
+				elif (i == 1):
+					print("Past data not found, please try again tomorrow.")
+					sys.exit(0)
+				else:
+					break
+			df = pd.read_csv(query_csv, index_col = 0)
+			try:
+				query_data_piece = df[df["student_id"] == args.query]["total_activity_time"].values[0]
+				query_data.insert(0, query_data_piece)
+			except Exception:
+				print("Studen id {} not found in {} data\n".format(args.query, query_csv))
+
+		query_delta = [0]
+		for i in range(len(query_data) - 1):
+			query_delta.append(query_data[i + 1] - query_data[i])
+		contribution.contributionPlot(datetime.date.today(), query_delta, by = "month", save = "temp")
+		sys.exit(0)
+
 
 	if (args.rank):
 		if not (os.path.exists(data_path + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/")):
