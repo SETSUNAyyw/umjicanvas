@@ -1,18 +1,19 @@
-if [ ! -f "./token.txt" ]; then
-	echo "Missing access token. Please include it in ./token.txt"
-	exit
+if [ -z $1 ]; then
+	path="./"
+else
+	path=$1
 fi
 
-token=`cat ./token.txt`
+token=`cat "${path}token.txt"`
 if [ -z $token ]; then
-	echo "Missing access token. Please include it in ./token.txt"
+	echo "Missing access token. Please include it in ${path}token.txt"
 	exit
 fi
 
 GET "https://umjicanvas.com/api/v1/users/self/favorites/courses?access_token=$token" > /tmp/temp.txt
-courses=($(python ./canvas.py xxx -f | tr -d '[],'))
+courses=($(python ./canvas.py xxx -f -d $path | tr -d '[],'))
 rm /tmp/temp.txt
-# echo ${couses[1]}
+# echo ${#courses[@]}
 len_course=${#courses[@]}
 
 for (( i = 1; i < ${len_course}; i += 2 ));
@@ -29,7 +30,7 @@ do
 			break
 		fi
 	done
-	python ./canvas.py $course_name
+	python ./canvas.py $course_name -d $path
 	echo "Fetching data from $course_name"
 	rm /tmp/$course_name.txt
 done
@@ -38,9 +39,9 @@ my_activity=0
 for (( i = 1; i < ${len_course}; i += 2 ));
 do
 	course_name=${courses[$(($i + 1))]}
-	delta=`python ./canvas.py $course_name -m ${courses[0]}`
+	delta=`python ./canvas.py $course_name -m ${courses[0]} -d $path`
 	my_activity=$((my_activity + $delta))
-	python ./canvas.py $course_name -r
+	python ./canvas.py $course_name -r -d $path
 done
-python ./canvas.py xxx -s $my_activity
-python ./canvas.py xxx -p
+python ./canvas.py xxx -s $my_activity -d $path
+python ./canvas.py xxx -p -d $path

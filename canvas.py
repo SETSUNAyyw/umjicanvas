@@ -111,6 +111,7 @@ def main():
 	parser.add_argument("-p", "--plot", help = "Plot my contribution.", nargs = "?", const = "./")
 	parser.add_argument("-q", "--query", help = "Query others' contribution, requires id.", type = int)
 	parser.add_argument("-t", "--test", help = "Test.", type = str)
+	parser.add_argument("-d", "--directory", help = "Specify a running directory.", nargs = "?", const = "./")
 	args = parser.parse_args()
 	args.course = args.course.strip("'")
 
@@ -119,13 +120,18 @@ def main():
 		print(args.test)
 		sys.exit(0)
 
-	data_path = "./data/"
+	if (args.directory):
+		png_save_path = args.directory
+		data_path = args.directory + "data/"
+	else:
+		png_save_path = "./"
+		data_path = "./data/"
 	if not (os.path.exists(data_path)):
 		os.makedirs(data_path)
 	if not (os.path.exists(data_path + datetime.date.today().isoformat() + "/")):
 		os.makedirs(data_path + datetime.date.today().isoformat() + "/")
-	course_csv = "./data/" + datetime.date.today().isoformat() + "/" + args.course + ".csv"
-	activity_csv = "./data/my_activity.csv"
+	course_csv = data_path + datetime.date.today().isoformat() + "/" + args.course + ".csv"
+	activity_csv = data_path + "my_activity.csv"
 	if not (os.path.exists(activity_csv)):
 		os.system("touch " + activity_csv)
 		with open(activity_csv, "w") as f:
@@ -148,9 +154,16 @@ def main():
 		df = pd.read_csv(activity_csv)
 		activity = df["activity"].values
 		delta = [0]
-		for i in range(len(df) - 1):
+		len_df = len(df)
+		if (len_df == 0):
+			print("There is no activity data yet. Try run.sh first.")
+			sys.exit(0)
+		elif (len_df == 1):
+			print("Past data not found, please try again tomorrow.")
+			sys.exit(0)
+		for i in range(len_df - 1):
 			delta.append(activity[i + 1] - activity[i])
-		contribution.contributionPlot(datetime.date.today(), delta, by = "month", save = args.plot)
+		contribution.contributionPlot(datetime.date.today(), delta, by = "month", save = png_save_path)
 		# print(delta)
 		sys.exit(0)
 
@@ -185,8 +198,8 @@ def main():
 		if not (os.path.exists(data_path + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/")):
 			print("Past data of {} not found, please try again tomorrow.".format(args.course))
 			sys.exit(0)
-		yesterday_csv = "./data/" + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/" + args.course + ".csv"
-		rank_csv = "./data/" + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/" + args.course + "_rank.csv"
+		yesterday_csv = data_path + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/" + args.course + ".csv"
+		rank_csv = data_path + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/" + args.course + "_rank.csv"
 		delta = []
 		df0 = pd.read_csv(yesterday_csv, index_col = 0)
 		df1 = pd.read_csv(course_csv, index_col = 0)
