@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import math
 import os
 import datetime
 import matplotlib as mpl
@@ -13,11 +14,13 @@ def contributionPlot(date, activity_observed, by = "month", save = "./"):
 		png_path = data_path + "temp.png"
 	else:
 		data_path = save + "img/"
-		png_path = data_path + datetime.datetime.now().strftime("%Y-%m-%d") + ".png"
+		png_path = data_path + "contribution.png"
 	activity = activity_observed
 	if not (os.path.exists(data_path)):
 		os.makedirs(data_path)
 
+	activity = [np.mean(activity) if x == max(activity) else x for x in activity]
+	# print(activity)
 	if (by == "month"):
 		row = 5
 		days = 31
