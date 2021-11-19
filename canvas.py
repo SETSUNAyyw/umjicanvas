@@ -121,10 +121,10 @@ def main():
 		sys.exit(0)
 
 	if (args.directory):
-		png_save_path = args.directory
+		png_save_path = args.directory + "img/"
 		data_path = args.directory + "data/"
 	else:
-		png_save_path = "./"
+		png_save_path = "./img/"
 		data_path = "./data/"
 	if not (os.path.exists(data_path)):
 		os.makedirs(data_path)
@@ -169,6 +169,7 @@ def main():
 
 	if (args.query):
 		query_data = []
+		query_name = ""
 		for i in range(32):
 			query_csv = data_path + (datetime.date.today() - datetime.timedelta(i)).isoformat() + "/" + args.course + ".csv"
 			if not (os.path.exists(query_csv)):
@@ -182,7 +183,10 @@ def main():
 					break
 			df = pd.read_csv(query_csv, index_col = 0)
 			try:
-				query_data_piece = df[df["student_id"] == args.query]["total_activity_time"].values[0]
+				query_data_slice = df[df["student_id"] == args.query]
+				query_data_piece = query_data_slice["total_activity_time"].values[0]
+				if (query_name == ""):
+					query_name = query_data_slice["name"].values[0]
 				query_data.insert(0, query_data_piece)
 			except Exception:
 				print("Studen id {} not found in {} data\n".format(args.query, query_csv))
@@ -190,7 +194,13 @@ def main():
 		query_delta = [0]
 		for i in range(len(query_data) - 1):
 			query_delta.append(query_data[i + 1] - query_data[i])
-		contribution.contributionPlot(datetime.date.today(), query_delta, by = "month", save = "temp")
+		# print(query_delta)
+		print("{}'s last 31-day activity in {} listed:".format(query_name, args.course))
+		for i in range(31, 0, -1):
+			if (i >= len(query_delta)):
+				continue
+			print("{0: <10}\t{1}".format((datetime.date.today() - datetime.timedelta(i)).isoformat(), query_delta[-i]))
+		contribution.contributionPlot(datetime.date.today(), query_delta, by = "month", save = png_save_path, name = str(args.query))
 		sys.exit(0)
 
 

@@ -8,18 +8,23 @@ from svgpathtools import svg2paths
 from svgpath2mpl import parse_path
 from matplotlib import pyplot as plt
 
-def contributionPlot(date, activity_observed, by = "month", save = "./"):
+def contributionPlot(date, activity_observed, by = "month", save = "./", name = "contribution"):
 	if (save == "temp"):
 		data_path = "/tmp/.umjicanvas/"
 		png_path = data_path + "temp.png"
 	else:
-		data_path = save + "img/"
-		png_path = data_path + "contribution.png"
+		data_path = save
+		png_path = data_path + name + ".png"
 	activity = activity_observed
 	if not (os.path.exists(data_path)):
 		os.makedirs(data_path)
 
 	activity = [np.mean(activity) if x == max(activity) else x for x in activity]
+	activity_min = min([x for x in activity if (x > 0)])
+	data_len = len(activity)
+	activity = [activity_min if (x == 0) else x for x in activity]
+	activity[0] = 1
+	# activity[0] = activity_min
 	# print(activity)
 	if (by == "month"):
 		row = 5
@@ -29,11 +34,11 @@ def contributionPlot(date, activity_observed, by = "month", save = "./"):
 		row = 53
 		days = 366
 		fig_len = 30
-	if (len(activity) < days):
-		for i in range(days - len(activity)):
-			activity = np.insert(activity, 0, 0)
+	if (data_len < days):
+		for i in range(days - data_len):
+			activity = np.insert(activity, 0, 1)
 			# print("insert")
-	elif (len(activity) > days):
+	elif (data_len > days):
 		activity = activity[-days:]
 	for i in range(row * 7 - days):
 		activity = np.append(activity, -100000)
@@ -52,10 +57,13 @@ def contributionPlot(date, activity_observed, by = "month", save = "./"):
 		y = np.append(y, y0)
 	# print(x)
 	# print(y)
-	c = activity#np.random.randint(100, size = 371)#
+	c = activity
+	# c = np.random.randint(100, size = 35)
+	# print(c)
 	plt.figure(figsize = (fig_len, 4))
 	plt.style.use('dark_background')
-	plt.scatter(x = x, y = y, c = c, s = 700, marker = planet_marker, cmap = "bone", vmin = -max(c) * 0.1, vmax = max(c))
+	plt.scatter(x = x[:(days - data_len + 1)], y = y[:(days - data_len + 1)], c = c[:(days - data_len + 1)], s = 700, marker = planet_marker, cmap = "bone", vmin = 0, vmax = 10)
+	plt.scatter(x = x[-(data_len + 3):], y = y[-(data_len + 3):], c = c[-(data_len + 3):], s = 700, marker = planet_marker, cmap = "bone", vmin = (activity_min - 0.1 * max(activity)), vmax = max(activity))
 	# plt.text(-10, 6.5, "June", fontsize = 20)
 	# plt.colorbar()
 	plt.axis("off")
