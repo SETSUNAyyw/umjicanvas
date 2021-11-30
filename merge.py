@@ -6,8 +6,8 @@ import os
 def main():
 	data_path = "./data/"
 	length = []
-	today = (datetime.date.today() - datetime.timedelta(1)).isoformat()
-	yesterday = (datetime.date.today() - datetime.timedelta(2)).isoformat()
+	today = datetime.date.today().isoformat()
+	yesterday = (datetime.date.today() - datetime.timedelta(1)).isoformat()
 
 	folders = next(os.walk(data_path), (None, None, []))[1]
 	filenames = next(os.walk(os.path.join(data_path, folders[0])), (None, None, []))[2]
@@ -36,7 +36,7 @@ def main():
 		os.rmdir(os.path.join(data_path, folder))
 
 	df = pd.read_csv(os.path.join(data_path, filenames[2] + ".gz"), index_col = 0, compression ="gzip")
-	print(df)
+	# print(df)
 
 if __name__ == "__main__":
     main()
