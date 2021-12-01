@@ -8,7 +8,7 @@ from svgpathtools import svg2paths
 from svgpath2mpl import parse_path
 from matplotlib import pyplot as plt
 
-def contributionPlot(date, activity_observed, by = "month", save = "./", name = "contribution"):
+def contributionPlot(activity_observed, by = "month", save = "./", name = "contribution"):
 	if (save == "temp"):
 		data_path = "/tmp/.umjicanvas/"
 		png_path = data_path + "temp.png"

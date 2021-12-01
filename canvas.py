@@ -112,6 +112,7 @@ def main():
 	parser.add_argument("-q", "--query", help = "Query others' contribution, requires id.", type = int)
 	parser.add_argument("-t", "--test", help = "Test.", type = str)
 	parser.add_argument("-d", "--directory", help = "Specify a running directory.", nargs = "?", const = "./")
+	parser.add_argument("-c", "--check", help = "Check whether to write back the cache.", action = "store_true")
 	args = parser.parse_args()
 	args.course = args.course.strip("'")
 
@@ -126,14 +127,46 @@ def main():
 	else:
 		png_save_path = "./img/"
 		data_path = "./data/"
+	cache_path = os.path.join(data_path, ".cache")
 	if not (os.path.exists(data_path)):
 		os.makedirs(data_path)
-	if not (os.path.exists(data_path + datetime.date.today().isoformat() + "/")):
-		os.makedirs(data_path + datetime.date.today().isoformat() + "/")
-	course_csv = data_path + datetime.date.today().isoformat() + "/" + args.course + ".csv"
-	activity_csv = data_path + "my_activity.csv"
+	if not (os.path.exists(cache_path)):
+		os.makedirs(cache_path)
+	today_cache_path = os.path.join(cache_path, datetime.date.today().isoformat())
+	yesterday_cache_path = os.path.join(cache_path, (datetime.date.today() - datetime.timedelta(1)).isoformat())
+	ototoi_cache_path = os.path.join(cache_path, (datetime.date.today() - datetime.timedelta(2)).isoformat())
+
+	if (args.check):
+		if not (os.path.exists(today_cache_path)):
+			os.makedirs(today_cache_path)
+			if (os.path.exists(yesterday_cache_path)):
+				print("Writing back cache...")
+				filenames = next(os.walk(yesterday_cache_path, (None, None, [])))[2]
+				for filename in filenames:
+					df_cache = pd.read_csv(os.path.join(yesterday_cache_path, filename), compression = "gzip", index_col = 0)
+					df = pd.read_csv(os.path.join(data_path, filename), compression = "gzip", index_col = 0)
+					# print(df_cache[df_cache["student_id"] == 4518]["total_activity_time"])
+					df = pd.merge(df, df_cache[["student_id", "total_activity_time"]], left_on = "id", right_on = "student_id")
+					df = df.rename(columns = {"total_activity_time": (datetime.date.today() - datetime.timedelta(1)).isoformat()})
+					df = df.drop("student_id", axis = 1)
+					df.to_csv(os.path.join(data_path, filename), compression = "gzip")
+					# os.remove(os.path.join(yesterday_cache_path, filename))
+					# print(df[df["id"] == 4518][(datetime.date.today() - datetime.timedelta(1)).isoformat()])
+			if (os.path.exists(ototoi_cache_path)):
+				filenames = next(os.walk(ototoi_cache_path, (None, None, [])))[2]
+				for filename in filenames:
+					os.remove(os.path.join(ototoi_cache_path, filename))
+				os.rmdir(ototoi_cache_path)
+
+		print("Cache check Done.")
+		sys.exit(0)
+
+	
+
+	course_csv = os.path.join(today_cache_path, args.course + ".csv.gz")
+	activity_csv = os.path.join(data_path, "my_activity.csv")
 	if not (os.path.exists(activity_csv)):
-		os.system("touch " + activity_csv)
+		# os.system("touch " + activity_csv)
 		with open(activity_csv, "w") as f:
 			f.write("date,activity\n")
 
@@ -163,56 +196,49 @@ def main():
 			sys.exit(0)
 		for i in range(len_df - 1):
 			delta.append(activity[i + 1] - activity[i])
-		contribution.contributionPlot(datetime.date.today(), delta, by = "month", save = png_save_path)
+		contribution.contributionPlot(delta, by = "month", save = png_save_path)
 		# print(delta)
 		sys.exit(0)
 
 	if (args.query):
 		query_data = []
-		query_name = ""
-		for i in range(32):
-			query_csv = data_path + (datetime.date.today() - datetime.timedelta(i)).isoformat() + "/" + args.course + ".csv"
-			if not (os.path.exists(query_csv)):
-				if (i == 0):
-					print("There is no activity data yet. Try run.sh first.")
-					sys.exit(0)
-				elif (i == 1):
-					print("Past data not found, please try again tomorrow.")
-					sys.exit(0)
-				else:
-					break
-			df = pd.read_csv(query_csv, index_col = 0)
-			try:
-				query_data_slice = df[df["student_id"] == args.query]
-				query_data_piece = query_data_slice["total_activity_time"].values[0]
-				if (query_name == ""):
-					query_name = query_data_slice["name"].values[0]
-				query_data.insert(0, query_data_piece)
-			except Exception:
-				print("Studen id {} not found in {} data\n".format(args.query, query_csv))
+		query_csv = os.path.join(data_path, args.course + ".csv.gz")
+		if not (os.path.exists(query_csv)):
+			if not (os.path.exists(os.path.join(today_cache_path))):
+				print("There is no activity data yet. Try run.sh first.")
+				sys.exit(0)
+			else:
+				print("Past data not found, please try again tomorrow.")
+				sys.exit(0)
+		query_data = pd.read_csv(query_csv, index_col = 0, compression = "gzip")
+		try:
+			query_data = query_data[query_data["id"] == args.query].values[0]
+		except Exception:
+			print("Studen id {} not found in {}\n".format(args.query, query_csv))
+		query_data = query_data[-32:]
+		query_name = pd.read_csv(os.path.join(data_path, args.course + "_info.csv.gz"), index_col = 0, compression = "gzip")
+		query_name = query_name[query_name["student_id"] == args.query]["name"].values[0]
 
 		query_delta = [0]
 		for i in range(len(query_data) - 1):
 			query_delta.append(query_data[i + 1] - query_data[i])
-		# print(query_delta)
 		print("{}'s last 31-day activity in {} listed:".format(query_name, args.course))
 		for i in range(31, 0, -1):
 			if (i >= len(query_delta)):
 				continue
 			print("{0: <10}\t{1}".format((datetime.date.today() - datetime.timedelta(i)).isoformat(), query_delta[-i]))
-		contribution.contributionPlot(datetime.date.today(), query_delta, by = "month", save = png_save_path, name = str(args.query))
+		contribution.contributionPlot(query_delta, by = "month", save = png_save_path, name = str(args.query))
 		sys.exit(0)
 
 
 	if (args.rank):
-		if not (os.path.exists(data_path + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/")):
+		if not (yesterday_cache_path):
 			print("Past data of {} not found, please try again tomorrow.".format(args.course))
 			sys.exit(0)
-		yesterday_csv = data_path + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/" + args.course + ".csv"
-		rank_csv = data_path + (datetime.date.today() - datetime.timedelta(1)).isoformat() + "/" + args.course + "_rank.csv"
+		yesterday_csv = os.path.join(yesterday_cache_path, args.course + ".csv.gz")
 		delta = []
-		df0 = pd.read_csv(yesterday_csv, index_col = 0)
-		df1 = pd.read_csv(course_csv, index_col = 0)
+		df0 = pd.read_csv(yesterday_csv, index_col = 0, compression = "gzip")
+		df1 = pd.read_csv(course_csv, index_col = 0, compression = "gzip")
 		for i in range(len(df0)):
 			row = df0.iloc[i]
 			# print(row["total_activity_time"])
@@ -228,7 +254,7 @@ def main():
 		sys.exit(0)
 
 	if (args.mine):
-		df = pd.read_csv(course_csv, index_col = 0)
+		df = pd.read_csv(course_csv, index_col = 0, compression = "gzip")
 		sys.stdout.write("{}".format(df[df["student_id"] == args.mine]["total_activity_time"].values[0]))
 		sys.exit(0)
 
@@ -247,7 +273,7 @@ def main():
 		df[key] = df.apply(lambda row: extractEnroll(row, key), axis = 1)
 	df = df.drop("enrollments", axis = 1)
 	df = df.rename(columns = {"id": "enrollment_id"})
-	df.to_csv(course_csv)
+	df.to_csv(course_csv, compression = "gzip")
 	# dfN = df.sort_values("total_activity_time", ascending = False)
 	# dfN = dfN[["student_id", "name", "total_activity_time"]]
 	# print(df.head(20))

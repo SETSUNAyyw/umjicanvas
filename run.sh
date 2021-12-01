@@ -16,8 +16,10 @@ rm /tmp/temp.txt
 # echo ${#courses[@]}
 len_course=${#courses[@]}
 
+python ./canvas.py xxx -c -d $path
 for (( i = 1; i < ${len_course}; i += 2 ));
 do
+	echo "Fetching data from ${courses[$(($i + 1))]}"
 	for j in {1..5}
 	do
 		course_id=${courses[$i]}
@@ -31,7 +33,6 @@ do
 		fi
 	done
 	python ./canvas.py $course_name -d $path
-	echo "Fetching data from $course_name"
 	rm /tmp/$course_name.txt
 done
 
