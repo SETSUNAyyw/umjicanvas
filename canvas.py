@@ -240,6 +240,7 @@ def main():
 		df0 = pd.read_csv(yesterday_csv, index_col = 0, compression = "gzip")
 		df1 = pd.read_csv(course_csv, index_col = 0, compression = "gzip")
 		for i in range(len(df0)):
+			# print(i)
 			row = df0.iloc[i]
 			# print(row["total_activity_time"])
 			activity_yesterday = row["total_activity_time"]
