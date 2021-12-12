@@ -5,14 +5,14 @@ import argparse
 import datetime
 import os
 import sys
-import warnings
+# import warnings
 import contribution
-from oauthlib.oauth2.rfc6749 import tokens
-from oauthlib.oauth2 import Server
+# from oauthlib.oauth2.rfc6749 import tokens
+# from oauthlib.oauth2 import Server
 
-def warn(*args, **kwargs):
-	pass
-warnings.warn = warn
+# def warn(*args, **kwargs):
+# 	pass
+# warnings.warn = warn
 
 def readName():
 	names = pd.DataFrame()
@@ -53,21 +53,21 @@ def readCourse():
 			courses = pd.concat([courses, df], ignore_index = True)
 	print(courses)
 
-def validate_client_id(self, client_id, request):
-    request.claims = {
-        'aud': self.client_id
-    }
-    return True
+# def validate_client_id(self, client_id, request):
+#     request.claims = {
+#         'aud': self.client_id
+#     }
+#     return True
 
-def decode():
-	private_pem_key = 12345
-	validator = 12345
+# def decode():
+# 	private_pem_key = 12345
+# 	validator = 12345
 
-	server = Server(
-	  validator,
-	  token_generator = tokens.signed_token_generator(private_pem_key, issuer="foobar")
-	)
-	print(server)
+# 	server = Server(
+# 	  validator,
+# 	  token_generator = tokens.signed_token_generator(private_pem_key, issuer="foobar")
+# 	)
+# 	print(server)
 
 def readUsers(course_name):
 	course_raw_data = "/tmp/'" + course_name + "'.txt"
@@ -128,15 +128,16 @@ def main():
 		png_save_path = "./img/"
 		data_path = "./data/"
 	cache_path = os.path.join(data_path, ".cache")
-	if not (os.path.exists(data_path)):
-		os.makedirs(data_path)
-	if not (os.path.exists(cache_path)):
-		os.makedirs(cache_path)
 	today_cache_path = os.path.join(cache_path, datetime.date.today().isoformat())
 	yesterday_cache_path = os.path.join(cache_path, (datetime.date.today() - datetime.timedelta(1)).isoformat())
 	ototoi_cache_path = os.path.join(cache_path, (datetime.date.today() - datetime.timedelta(2)).isoformat())
 
 	if (args.check):
+		if not (os.path.exists(data_path)):
+			sys.stdout.write("Welcome to umjicanvas contribution count system!\n")
+			os.makedirs(data_path)
+		if not (os.path.exists(cache_path)):
+			os.makedirs(cache_path)
 		if not (os.path.exists(today_cache_path)):
 			os.makedirs(today_cache_path)
 			if (os.path.exists(yesterday_cache_path)):
@@ -144,7 +145,12 @@ def main():
 				filenames = next(os.walk(yesterday_cache_path, (None, None, [])))[2]
 				for filename in filenames:
 					df_cache = pd.read_csv(os.path.join(yesterday_cache_path, filename), compression = "gzip", index_col = 0)
-					df = pd.read_csv(os.path.join(data_path, filename), compression = "gzip", index_col = 0)
+					if not (os.path.exists(os.path.join(data_path, filename))):
+						df = pd.DataFrame()
+						df["id"] = df_cache["student_id"]
+						df.to_csv(os.path.join(data_path, filename), compression = "gzip")
+					else:
+						df = pd.read_csv(os.path.join(data_path, filename), compression = "gzip", index_col = 0)
 					# print(df_cache[df_cache["student_id"] == 4518]["total_activity_time"])
 					df = pd.merge(df, df_cache[["student_id", "total_activity_time"]], left_on = "id", right_on = "student_id")
 					df = df.rename(columns = {"total_activity_time": (datetime.date.today() - datetime.timedelta(1)).isoformat()})
@@ -161,6 +167,11 @@ def main():
 		print("Cache check Done.")
 		sys.exit(0)
 
+	if (args.favorite):
+		course_list = findMyCourse()
+		# print(course_list)
+		sys.stdout.write(str(course_list))
+		sys.exit(0)
 	
 
 	course_csv = os.path.join(today_cache_path, args.course + ".csv.gz")
@@ -232,7 +243,7 @@ def main():
 
 
 	if (args.rank):
-		if not (yesterday_cache_path):
+		if not (os.path.exists(yesterday_cache_path)):
 			print("Past data of {} not found, please try again tomorrow.".format(args.course))
 			sys.exit(0)
 		yesterday_csv = os.path.join(yesterday_cache_path, args.course + ".csv.gz")
@@ -259,11 +270,6 @@ def main():
 		sys.stdout.write("{}".format(df[df["student_id"] == args.mine]["total_activity_time"].values[0]))
 		sys.exit(0)
 
-	if (args.favorite):
-		course_list = findMyCourse()
-		# print(course_list)
-		sys.stdout.write(str(course_list))
-		sys.exit(0)
 	# print("no")
 	# print(args.summary)
 	# Write course data into csv
@@ -275,6 +281,9 @@ def main():
 	df = df.drop("enrollments", axis = 1)
 	df = df.rename(columns = {"id": "enrollment_id"})
 	df.to_csv(course_csv, compression = "gzip")
+	if not (os.path.exists(os.path.join(data_path, args.course + "_info.csv.gz"))):
+		df.to_csv(os.path.join(data_path, args.course + "_info.csv.gz"), compression = "gzip")
+
 	# dfN = df.sort_values("total_activity_time", ascending = False)
 	# dfN = dfN[["student_id", "name", "total_activity_time"]]
 	# print(df.head(20))
