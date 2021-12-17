@@ -5,7 +5,8 @@ import argparse
 import datetime
 import os
 import sys
-# import warnings
+import warnings
+warnings.filterwarnings("ignore")
 import contribution
 # from oauthlib.oauth2.rfc6749 import tokens
 # from oauthlib.oauth2 import Server
@@ -27,12 +28,18 @@ def readName():
 
 def findMyCourse():
 	with open("/tmp/temp.txt", "r") as f:
+	# with open("./temp.txt", "r") as f:
 		courses = f.readline()
 	courses = courses.replace("null", "None")
 	courses = courses.replace("false", "False")
 	courses = courses.replace("true", "True")
 	courses = eval(courses)
-	li = [courses[0]["enrollments"][0]["user_id"]]
+	try:
+		li = [courses[0]["enrollments"][0]["user_id"]]
+	except Exception:
+		li = [-1, -1]
+		# print("ID not exists, or something went wrong with your token, please check.")
+		return li
 	for item in courses:
 		course_id = item["id"]
 		course_name = item["course_code"]
@@ -40,6 +47,9 @@ def findMyCourse():
 			continue
 		li.append(course_id)
 		li.append(course_name)
+	if (len(li) == 1):
+		li.append(-1)
+		# print("You do not have any course this semester, Bye!")
 	return li
 
 def readCourse():

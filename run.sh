@@ -28,6 +28,15 @@ courses=($($py_command ./canvas.py xxx -f -d $path | tr -d '[],'))
 rm /tmp/temp.txt
 # echo ${#courses[@]}
 len_course=${#courses[@]}
+# echo ${courses[@]}
+if [[ ${courses[0]} -eq -1 ]]; then
+	echo "ID not exists, or something went wrong with your token, please check."
+	exit
+fi
+if [[ ${courses[1]} -eq -1 ]]; then
+	echo "You do not have any course this semester, Bye!"
+	exit
+fi
 
 $py_command ./canvas.py xxx -c -d $path
 for (( i = 1; i < ${len_course}; i += 2 ));
