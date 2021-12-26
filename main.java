@@ -12,7 +12,11 @@ public class main {
 		// String courses = c.getCourse();
 		canvas.readToken();
 		canvas.getID();
-		canvas.fetchCourse();
-		// System.out.println(courses);
+		canvas.fetchCourseList();
+		canvas.fetchCourses();
+
+		// canvas.createInfoDatabase();
+
+		// System.out.println(System.getProperty("user.dir"));
 	}
 }
