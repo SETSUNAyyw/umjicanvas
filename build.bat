@@ -1,5 +1,5 @@
 @echo off
 javac main.java
-rem jar -cfe canvas.jar main main.java main.class src
-rem java -jar canvas.jar
-java main
+jar -cfe canvas.jar main main.java main.class src org
+java -jar canvas.jar
+rem java main

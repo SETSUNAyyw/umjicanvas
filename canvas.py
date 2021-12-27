@@ -8,6 +8,7 @@ import sys
 import warnings
 warnings.filterwarnings("ignore")
 import contribution
+import csv
 # from oauthlib.oauth2.rfc6749 import tokens
 # from oauthlib.oauth2 import Server
 
@@ -80,13 +81,16 @@ def readCourse():
 # 	print(server)
 
 def readUsers(course_name):
-	course_raw_data = "/tmp/'" + course_name + "'.txt"
+	# course_raw_data = "/tmp/'" + course_name + "'.txt"
+	course_raw_data = "temp.txt"
 	with open(course_raw_data, "r") as f:
 		li = f.readlines()
 	for i in range(len(li)):
 		li[i] = li[i].replace("null", "None")
 		li[i] = li[i].replace("false", "False")
 		li[i] = li[i].replace("true", "True")
+		# print(eval(li[0]))
+		# sys.exit(0)
 		li[i] = eval(li[i])
 	df = pd.DataFrame(li[0][0])
 	for i in range(len(li)):
@@ -94,6 +98,11 @@ def readUsers(course_name):
 			if ((i == 0) & (j == 0)):
 				continue
 			df = df.append(li[i][j], ignore_index = True)
+	df["name"] = df["name"].str.replace(",", "")
+	df["sortable_name"] = df["sortable_name"].str.replace(",", "")
+	df["sortable_name"] = df["sortable_name"].str.replace("[^a-zA-Z|\\s]", "")
+	df["short_name"] = df["short_name"].str.replace(",", "")
+	df["short_name"] = df["short_name"].str.replace("[^a-zA-Z]|\\s", "")
 	return df
 
 def extractEnroll(row, string):
@@ -124,7 +133,7 @@ def main():
 	parser.add_argument("-d", "--directory", help = "Specify a running directory.", nargs = "?", const = "./")
 	parser.add_argument("-c", "--check", help = "Check whether to write back the cache.", action = "store_true")
 	args = parser.parse_args()
-	args.course = args.course.strip("'")
+	# args.course = args.course.strip("'")
 
 	if (args.test):
 		args.test = args.test.strip("'")
@@ -186,10 +195,10 @@ def main():
 
 	course_csv = os.path.join(today_cache_path, args.course + ".csv.gz")
 	activity_csv = os.path.join(data_path, "my_activity.csv")
-	if not (os.path.exists(activity_csv)):
-		# os.system("touch " + activity_csv)
-		with open(activity_csv, "w") as f:
-			f.write("date,activity\n")
+	# if not (os.path.exists(activity_csv)):
+	# 	# os.system("touch " + activity_csv)
+	# 	with open(activity_csv, "w") as f:
+	# 		f.write("date,activity\n")
 
 	if (args.summary):
 		with open(activity_csv, "r") as f:
@@ -290,9 +299,10 @@ def main():
 		df[key] = df.apply(lambda row: extractEnroll(row, key), axis = 1)
 	df = df.drop("enrollments", axis = 1)
 	df = df.rename(columns = {"id": "enrollment_id"})
-	df.to_csv(course_csv, compression = "gzip")
-	if not (os.path.exists(os.path.join(data_path, args.course + "_info.csv.gz"))):
-		df.to_csv(os.path.join(data_path, args.course + "_info.csv.gz"), compression = "gzip")
+	# df.to_csv(course_csv, compression = "gzip")
+	df.to_csv("tmp.csv", index = False, quoting = csv.QUOTE_NONNUMERIC)
+	# if not (os.path.exists(os.path.join(data_path, args.course + "_info.csv.gz"))):
+	# 	df.to_csv(os.path.join(data_path, args.course + "_info.csv.gz"), compression = "gzip")
 
 	# dfN = df.sort_values("total_activity_time", ascending = False)
 	# dfN = dfN[["student_id", "name", "total_activity_time"]]
