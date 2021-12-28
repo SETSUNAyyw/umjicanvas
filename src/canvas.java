@@ -68,7 +68,6 @@ public class canvas {
 
 	public static int getID() {
 		String content = getURL("https://umjicanvas.com/api/v1/users/self?access_token=" + token);
-		// System.out.println(content);
 		Matcher m = Pattern.compile("\"id\":(\\d+)").matcher(content);
 		if (m.find()) {
 			my_student_id = m.group(1);
@@ -179,13 +178,13 @@ public class canvas {
 					String lineText = null;
 					while ((lineText = lineReader.readLine()) != null) {
 						String[] line = lineText.split(",");
-						// System.out.println(line[0] + " " + line.length);
 						String current_student_id = line[0];
 						String activity = line[21];
 						activities_today.put(current_student_id, activity);
 						String insert_row = "insert or replace into " + course + "_info values(" + lineText + ")";
 						requests.add(insert_row);
 					}
+					lineReader.close();
 				}
 				catch (Exception e) {
 					e.printStackTrace();
@@ -236,7 +235,7 @@ public class canvas {
 	            	statement.executeBatch();
 	            }
 	            catch (BatchUpdateException e) {
-	            	// Pass
+	            	
 	            }
 	            connection.commit();
 	            System.out.println("Activity init batch executed");
