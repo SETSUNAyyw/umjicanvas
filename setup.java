@@ -10,6 +10,22 @@ import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
 
 public class setup {
+	public static void runCommandLine(String command) {
+	    Runtime rt = Runtime.getRuntime();
+	    try {
+			Process pr = rt.exec(command);
+	    	String content = "", line = "";
+			// System.out.println(pr.getOutputStream());
+			BufferedReader reader = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+			while((line = reader.readLine()) != null)
+				content += line;
+			reader.close();
+			System.out.println(content);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	public static void main(String[] args) {
 		String data_path = "data/";
 		String cache_path = data_path + ".cache/";
@@ -22,7 +38,8 @@ public class setup {
 		    return new File(current, name).isDirectory();
 		  }
 		});
-		file = new File(cache_path + directories[0]);
+		String info_cache_path = cache_path + directories[1] + "/";
+		file = new File(info_cache_path);
 		String[] courses_csv = file.list(new FilenameFilter() {
 		  @Override
 		  public boolean accept(File current, String name) {
@@ -56,7 +73,7 @@ public class setup {
 				) {
 				  while((line = br.readLine()) != null) {
 				  	csv_lines.add(line);
-				  }
+				}
 				  br.close();
 				} catch (Exception e) {
 
@@ -96,9 +113,51 @@ public class setup {
 	            	statement.addBatch(request);
 	            }
 	            
-	            	statement.executeBatch();
-	            	connection.commit();
-	            
+	            statement.executeBatch();
+	            connection.commit();
+				// path = Paths.get(info_cache_path + courses_csv[i]);
+				// System.out.println(path);
+				// csv_lines.clear();
+				// try(
+				//   InputStream is = Files.newInputStream(path);
+				//   GZIPInputStream gis = new GZIPInputStream(is);
+				//   InputStreamReader isReader = new InputStreamReader(gis, StandardCharsets.UTF_8);
+				//   BufferedReader br = new BufferedReader(isReader); 
+				// ) {
+				//   while((line = br.readLine()) != null) {
+				//   	csv_lines.add(line);
+				//   	// System.out.println(line);
+				// }
+				//   br.close();
+				// } catch (Exception e) {
+
+				// }
+				// try {
+			 //    	file = new File("temp.txt");
+			 //    	FileOutputStream out = new FileOutputStream(file);
+			 //      // OutputStreamWriter osw  = new OutputStreamWriter(ne	FileOutputStream(f));
+			 //    	// BufferedWriter bw = new BufferedWriter(osw)
+			 //    	for (String csv_line: csv_lines) {
+			 //    		out.write(csv_line.getBytes());
+			 //    	}
+			 //    } catch (IOException e) {
+			 //    	System.out.println(e);
+			 //    }
+				// runCommandLine("python canvas.py xxx");
+				// ArrayList<String> newest_activity = new ArrayList<String> ();
+				// for (String csv_line: csv_lines) {
+				// 	// String[] line_split = csv_line.split(",");
+				// 	ArrayList<String> line_split = new ArrayList<String>(Arrays.asList(csv_line.split("\\s*,\\s*")));
+				// 	// line_split.add(2, "\"" + record_start + "\"");
+				// 	// csv_line = line_split.subList(1, line_split.size()).toString().replace("[", "").replace("]", "");
+				// 	// csv_lines_copy.add(csv_line);
+				// 	// System.out.println(csv_line);
+				// 	newest_activity.add(line_split.get(22));
+				// 	// System.out.println();
+				// }
+				// for (String activity_line: newest_activity) {
+				// 	System.out.println(activity_line);
+				// }
 	            
 			}
 

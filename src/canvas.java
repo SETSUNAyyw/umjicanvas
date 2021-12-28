@@ -170,14 +170,13 @@ public class canvas {
 					content = content + web_content + '\n';
 				}
 				try {
-			      File file = new File("temp.txt");
-			      FileOutputStream out = new FileOutputStream(file);
-			      // OutputStreamWriter osw  = new OutputStreamWriter(new FileOutputStream(f));
-			      // BufferedWriter bw = new BufferedWriter(osw);
-			 
-			      out.write(content.substring(4).getBytes());
+			    	File file = new File("temp.txt");
+			    	FileOutputStream out = new FileOutputStream(file);
+			      // OutputStreamWriter osw  = new OutputStreamWriter(ne	FileOutputStream(f));
+			    	// BufferedWriter bw = new BufferedWriter(osw)				 
+			    	out.write(content.substring(4).getBytes());
 			    } catch (IOException e) {
-			      System.out.println(e);
+					System.out.println(e);
 			    }
 			    runCommandLine("python canvas.py xxx");
 				try {
@@ -261,7 +260,7 @@ public class canvas {
 	            String course_start = Collections.min(record_start_list.values());
 	            dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	            LocalDate course_start_date = LocalDate.parse(course_start, dateTimeFormatter);
-	            long time_delta = ChronoUnit.DAYS.between(LocalDate.now(), course_start_date) + 1;
+	            long time_delta = ChronoUnit.DAYS.between(record_start_date, LocalDate.now())/* + 1*/;
 	            // System.out.println(time_delta);
 	            try {
 	            	rs = statement.executeQuery("select time_delta_" + time_delta + " from " + course + "_activity");
