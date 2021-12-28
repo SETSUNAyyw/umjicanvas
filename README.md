@@ -1,2 +1,2 @@
 # umjicanvas
-To be completed :)
+This Python version will no longer be maintained.
