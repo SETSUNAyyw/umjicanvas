@@ -36,3 +36,7 @@ java main
 
 - More on [canvas API](https://canvas.instructure.com/doc/api/index.html).
 - You may find some information useful in `data` folder.
+
+## Author
+
+[Email](mailto:yangyiwen.sigo@hotmail.com)
