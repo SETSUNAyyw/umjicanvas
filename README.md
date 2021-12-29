@@ -36,6 +36,7 @@ java main
 
 - More on [canvas API](https://canvas.instructure.com/doc/api/index.html).
 - You may find some information useful in `data` folder.
+- You may want to run this program at least once a day, or setup a automatic trigger to run it at customized frequency.
 
 ## Author
 
