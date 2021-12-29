@@ -164,7 +164,7 @@ public class canvas {
 			    } catch (IOException e) {
 					System.out.println(e);
 			    }
-			    runCommandLine("python src/canvas.py");
+			    runCommandLine("python3 src/canvas.py");
 			    Path path = Paths.get("data/temp.txt");
 				try {
 					Files.delete(path);
@@ -172,6 +172,19 @@ public class canvas {
 				catch (IOException e) {
 					System.out.println(e.getMessage());
 				}
+	            connection.setAutoCommit(false);
+	            for (String request: requests) {
+	            	statement.addBatch(request);
+	            }
+	            try {
+	            	statement.executeBatch();
+	            	connection.commit();
+	            }
+	            catch (Exception e) {
+	            	e.printStackTrace();
+	            }
+	            System.out.println("Info batch executed");
+	            requests.clear();
 				Map<String, String> info_old = new HashMap<> ();
 				Map<String, String> info_new = new HashMap<> ();
 				ResultSet rs = statement.executeQuery("select student_id, name from " + course + "_info");
@@ -197,6 +210,17 @@ public class canvas {
 				catch (Exception e) {
 					e.printStackTrace();
 				}
+				for (String request: requests) {
+	            	statement.addBatch(request);
+	            }
+	            try {
+	            	statement.executeBatch();
+	            }
+	            catch (BatchUpdateException e) {
+	            	
+	            }
+	            connection.commit();
+	            requests.clear();
 				path = Paths.get("data/tmp.csv");
 				try {
 					Files.delete(path);
@@ -204,19 +228,6 @@ public class canvas {
 				catch (IOException e) {
 					System.out.println(e.getMessage());
 				}
-	            connection.setAutoCommit(false);
-	            for (String request: requests) {
-	            	statement.addBatch(request);
-	            }
-	            try {
-	            	statement.executeBatch();
-	            	connection.commit();
-	            }
-	            catch (Exception e) {
-	            	e.printStackTrace();
-	            }
-	            System.out.println("Info batch executed");
-	            requests.clear();
 	            ArrayList<String> info_log_string = new ArrayList<String> ();
 	            for (String id_old: info_old.keySet()) {
 	            	if (!info_new.containsKey(id_old)) {
@@ -351,6 +362,10 @@ public class canvas {
             	long time_delta = ChronoUnit.DAYS.between(record_start_date, LocalDate.now());
             	String column_today = "time_delta_" + time_delta;
             	String column_yesterday = "time_delta_" + (time_delta - 1);
+            	if (record_start.equals(LocalDate.now().format(dateTimeFormatter))) {
+            		System.out.println("No past data, please try again tomorrow.");
+            		return;
+            	}
 
             	rs = statement.executeQuery("select student_id, " + column_yesterday + ", " + column_today + " from " + course + "_activity");
             	int id_check_index = 0;
@@ -457,7 +472,7 @@ public class canvas {
 				} catch (IOException e) {
 					System.out.println(e);
 				}
-				runCommandLine("python src/canvas.py -p");
+				runCommandLine("python3 src/canvas.py -p");
 				Path path = Paths.get("data/temp.txt");
 				try {
 					Files.delete(path);

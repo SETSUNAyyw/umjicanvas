@@ -1,10 +1,15 @@
 
 import java.io.*;
 import src.canvas;
+import java.nio.file.*;
 
 
 public class main {
 	public static void main(String[] args) {
+		File path = new File("data/");
+		if (!path.exists()) {
+			path.mkdir();
+		}
 		canvas c = new canvas();
 
 		canvas.readToken();
