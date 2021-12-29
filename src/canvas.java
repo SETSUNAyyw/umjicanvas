@@ -172,14 +172,22 @@ public class canvas {
 				catch (IOException e) {
 					System.out.println(e.getMessage());
 				}
+				Map<String, String> info_old = new HashMap<> ();
+				Map<String, String> info_new = new HashMap<> ();
+				ResultSet rs = statement.executeQuery("select student_id, name from " + course + "_info");
+				while (rs.next()) {
+					info_old.put(rs.getString(1), rs.getString(2));
+				}
 				try {
 					BufferedReader lineReader = new BufferedReader(new FileReader("data/tmp.csv"));
 					lineReader.readLine();
 					String lineText = null;
 					while ((lineText = lineReader.readLine()) != null) {
-						String[] line = lineText.split(",");
+						String[] line = lineText.split("\\s*,\\s*");
 						String current_student_id = line[0];
+						String current_student_name = line[1];
 						String activity = line[21];
+						info_new.put(current_student_id, current_student_name);
 						activities_today.put(current_student_id, activity);
 						String insert_row = "insert or replace into " + course + "_info values(" + lineText + ")";
 						requests.add(insert_row);
@@ -209,8 +217,32 @@ public class canvas {
 	            }
 	            System.out.println("Info batch executed");
 	            requests.clear();
+	            ArrayList<String> info_log_string = new ArrayList<String> ();
+	            for (String id_old: info_old.keySet()) {
+	            	if (!info_new.containsKey(id_old)) {
+	            		info_log_string.add("[" + LocalDateTime.now() + "] Missing member in " + course + ": id = " + id_old + " name = " + info_old.get(id_old) + ".");
+	            	}
+	            }
+	            for (String id_new: info_new.keySet()) {
+	            	if (!info_old.containsKey(id_new)) {
+	            		info_log_string.add("[" + LocalDateTime.now() + "] New member in " + course + ": id = " + id_new + " name = " + info_new.get(id_new) + ".");
+	            	}
+	            }
+	            if (!info_log_string.isEmpty()) {
+	            	try {
+	            		File file = new File("data/info.log");
+						FileOutputStream out = new FileOutputStream(file, true);
+						for (String info_log_line: info_log_string) {
+					    	out.write(info_log_line.getBytes());
+					    	out.write('\n');
+						}
+						out.close();
+					} catch (IOException e) {
+						System.out.println(e.getMessage());
+					}
+	            }
 	            System.out.println("Update activity...");
-            	ResultSet rs = statement.executeQuery("select student_id from " + course + "_info");
+            	rs = statement.executeQuery("select student_id from " + course + "_info");
             	ArrayList<String> student_id_list = new ArrayList<String> ();
             	while (rs.next()) {
 	                student_id_list.add(rs.getString(1));
@@ -329,13 +361,13 @@ public class canvas {
             			activities_yesterday.add(Integer.parseInt(rs.getString(2)));
             		}
             		catch (NumberFormatException e) {
-            			activities_yesterday.add(-1);
+            			activities_yesterday.add(0);
             		}
             		try {
             			activities_today.add(Integer.parseInt(rs.getString(3)));
             		}
             		catch (NumberFormatException e) {
-            			activities_today.add(-1);
+            			activities_today.add(0);
             		}
 
             		id_check_index ++;

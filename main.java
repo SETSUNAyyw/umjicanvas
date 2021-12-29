@@ -12,6 +12,7 @@ public class main {
 		canvas.fetchCourseList();
 		canvas.fetchCourses();
 		canvas.rankActivity();
+		// Only my heat map (currently)
 		canvas.plotHeatMap(my_student_id);
 	}
 }
