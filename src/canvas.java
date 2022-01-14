@@ -217,7 +217,7 @@ public class canvas {
 	            	statement.executeBatch();
 	            }
 	            catch (BatchUpdateException e) {
-	            	
+	            	e.printStackTrace();
 	            }
 	            connection.commit();
 	            requests.clear();
@@ -265,10 +265,9 @@ public class canvas {
 	            	+ ")");
 	            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	            for (String student_id: student_id_list) {
-	            	requests.add("insert into " + course + "_activity values(" 
+	            	requests.add("insert or ignore into " + course + "_activity(student_id, record_start) values(" 
 	            		+ student_id + ", \"" 
-	            		+ LocalDate.now().format(dateTimeFormatter) + "\", "
-	            		+ activities_today.get(student_id)
+	            		+ LocalDate.now().format(dateTimeFormatter) + "\""
 	            		+ ")");
 	            }
 	            for (String request: requests) {
@@ -278,7 +277,7 @@ public class canvas {
 	            	statement.executeBatch();
 	            }
 	            catch (BatchUpdateException e) {
-	            	
+	            	e.printStackTrace();
 	            }
 	            connection.commit();
 	            System.out.println("Activity init batch executed");
