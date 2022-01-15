@@ -231,7 +231,11 @@ public class canvas {
 	            ArrayList<String> info_log_string = new ArrayList<String> ();
 	            for (String id_old: info_old.keySet()) {
 	            	if (!info_new.containsKey(id_old)) {
-	            		info_log_string.add("[" + LocalDateTime.now() + "] Missing member in " + course + ": id = " + id_old + " name = " + info_old.get(id_old) + ".");
+	            		String name_old = info_old.get(id_old);
+	            		if (!name_old.startsWith("!")) {
+		            		info_log_string.add("[" + LocalDateTime.now() + "] Missing member in " + course + ": id = " + id_old + " name = " + name_old + ".");
+		            		statement.executeUpdate("update " + course + "_info set name = '!" + name_old + "' where student_id = " + id_old);
+		            	}
 	            	}
 	            }
 	            for (String id_new: info_new.keySet()) {
